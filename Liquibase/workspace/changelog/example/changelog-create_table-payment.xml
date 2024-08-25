@@ -1,0 +1,55 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.1.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+	<changeSet id="create_table-payment" author="anotheory">
+		<createTable tableName="payment" schemaName="debtor">
+			<column name="id" type="INT" autoIncrement="true">
+				<constraints primaryKey="true"></constraints>
+			</column>
+			<column name="debt_id" type="INT" />
+			<column name="amount_paid" type="DECIMAL" />
+			<column name="created_at" type="TIMESTAMP WITH TIME ZONE" />
+			<column name="transaction_picture" type="TEXT" />
+			<column name="is_approved" type="BOOLEAN" />
+			<column name="approved_at" type="TIMESTAMP WITH TIME ZONE">
+				<constraints nullable="true" />
+			</column>
+			<column name="approved_by" type="INT">
+				<constraints nullable="true" />
+			</column>
+		</createTable>
+
+		<addForeignKeyConstraint
+			baseColumnNames="debt_id"
+			baseTableName="payment"
+			baseTableSchemaName="debtor"
+			constraintName="fk_payment_debt_id"
+			referencedColumnNames="id"
+			referencedTableName="debt"
+			referencedTableSchemaName="debtor"
+			onUpdate="CASCADE"
+			onDelete="RESTRICT"
+			deferrable="true"
+			initiallyDeferred="true"
+		/>
+		<addForeignKeyConstraint
+			baseColumnNames="approved_by"
+			baseTableName="payment"
+			baseTableSchemaName="debtor"
+			constraintName="fk_payment_approved_by"
+			referencedColumnNames="id"
+			referencedTableName="person"
+			referencedTableSchemaName="debtor"
+			onUpdate="CASCADE"
+			onDelete="RESTRICT"
+			deferrable="true"
+			initiallyDeferred="true"
+		/>
+	</changeSet>
+
+</databaseChangeLog>

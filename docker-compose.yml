@@ -1,0 +1,15 @@
+version: "3"
+services:
+  user_app:
+    container_name: "user_app"
+    build:
+      dockerfile: Dockerfile
+      context: .
+    ports:
+      - 5000:8080
+    external_links:
+      - postgres:postgres
+    entrypoint:
+      - bash
+      - ./run.bash
+    network_mode: bridge

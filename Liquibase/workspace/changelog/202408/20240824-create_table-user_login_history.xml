@@ -1,0 +1,34 @@
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd
+    http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd">
+
+    <changeSet id="20240824-create_table-user_login_history" author="anotheory">
+        <createTable schemaName="user_management" tableName="user_login_history">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="login_at" type="timestamp with time zone" defaultValueComputed="now()">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint
+			baseColumnNames="user_id"
+			baseTableName="user_login_history"
+			baseTableSchemaName="user_management"
+			constraintName="fk_user_id_on_user_login_history"
+			referencedColumnNames="id"
+			referencedTableName="user"
+			referencedTableSchemaName="user_management"
+			onUpdate="CASCADE"
+			onDelete="RESTRICT"
+			deferrable="true"
+			initiallyDeferred="true"
+		/>
+    </changeSet>
+
+</databaseChangeLog>
