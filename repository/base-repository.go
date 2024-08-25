@@ -14,6 +14,11 @@ func (BaseRepository) Get(query *gorm.DB, receiverModels interface{}) *gorm.DB {
 	return results
 }
 
+func (BaseRepository) GetSingle(query *gorm.DB, receiverModel interface{}) *gorm.DB {
+	results := db.DbConnection.Where(query).First(receiverModel)
+	return results
+}
+
 func (BaseRepository) GetById(id uint, receiverModel interface{}) *gorm.DB {
 	results := db.DbConnection.First(receiverModel, "id = ?", id)
 	return results

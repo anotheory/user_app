@@ -9,6 +9,7 @@ import (
 
 var notFoundException *exception.NotFoundException
 var validationException *exception.ValidationException
+var databaseException *exception.DatabaseException
 var fiberError *fiber.Error
 
 func ErrorHandler(c *fiber.Ctx, err error) error {
@@ -16,6 +17,8 @@ func ErrorHandler(c *fiber.Ctx, err error) error {
 		c.Status(fiber.ErrBadRequest.Code).JSON(err.(*exception.NotFoundException))
 	} else if errors.As(err, &validationException) {
 		c.Status(fiber.ErrNotFound.Code).JSON(err.(*exception.ValidationException))
+	} else if errors.As(err, &databaseException) {
+		c.Status(fiber.StatusInternalServerError).JSON(err.(*exception.DatabaseException))
 	} else {
 		if errors.As(err, &fiberError) {
 			c.Status(fiberError.Code).SendString(err.Error())

@@ -1,13 +1,13 @@
 package router
 
 import (
+	"user_app/flow"
+
 	"github.com/gofiber/fiber/v2"
 )
 
-type UserRouter struct {
-	Router fiber.Router
-}
+func InitUserRouter(app *fiber.App) {
+	router := app.Group("/api/users")
 
-func (c *UserRouter) Init(app *fiber.App) {
-	c.Router = app.Group("/api/users")
+	router.Get("/:username", flow.UserFlow{}.GetUser)
 }
