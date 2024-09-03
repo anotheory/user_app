@@ -10,4 +10,5 @@ func InitUserRouter(app *fiber.App) {
 	router := app.Group("/api/users")
 
 	router.Get("/:username", flow.UserFlow{}.GetUser)
+	router.Post("/", flow.UserFlow{}.CreateUser)
 }

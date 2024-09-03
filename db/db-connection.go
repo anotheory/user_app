@@ -9,7 +9,7 @@ import (
 var DbConnection *gorm.DB
 
 func InitDbConnection() *gorm.DB {
-	dsn := "host=localhost user=postgres dbname=postgres port=5432 sslmode=disable"
+	dsn := "host=localhost user=postgres password= dbname=postgres port=5432 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			TablePrefix: "test_schema.",
