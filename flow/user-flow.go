@@ -1,18 +1,16 @@
 package flow
 
 import (
-	"regexp"
 	"user_app/db"
+	"user_app/logic"
+	"user_app/logic/utility"
 	"user_app/models/entity"
 	"user_app/models/exception"
 	"user_app/models/user"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
-
-var usernamePattern string = "^[a-zA-Z]([\\w]{6,48})[a-zA-Z0-9]$"
-var passwordPattern string = "\\s+"
 
 type UserFlow struct{}
 
@@ -30,8 +28,7 @@ func (flow UserFlow) GetUser(c *fiber.Ctx) error {
 		err = exception.NewDatabaseException(dbResults.Error.Error())
 		return err
 	}
-	c.JSON(userEntity)
-	return nil
+	return c.Status(200).JSON(userEntity)
 }
 
 func (flow UserFlow) CreateUser(c *fiber.Ctx) error {
@@ -41,17 +38,26 @@ func (flow UserFlow) CreateUser(c *fiber.Ctx) error {
 		err = exception.NewValidationException("Malformed request body.")
 		return err
 	}
-	var matched bool = false
-	validateFunc := validator.New(validator.WithRequiredStructEnabled())
-	if err = validateFunc.Struct(request); err != nil {
-		err = exception.NewValidationException("Malformed request body.")
-		return err
-	} else if matched, _ = regexp.MatchString(usernamePattern, request.Username); !matched {
-		err = exception.NewValidationException("Wrong format on username.")
-		return err
-	} else if matched, _ = regexp.MatchString(passwordPattern, request.Password); matched {
-		err = exception.NewValidationException("Wrong format on password.")
+	if err = logic.ValidateCreateUserRequest(*request); err != nil {
 		return err
 	}
-	return c.Status(200).JSON(request)
+	var dbResults *gorm.DB
+	duplicateUserEntity := entity.UserEntity{}
+	dbResults = db.DbConnection.Model(&entity.UserEntity{}).Where("username = ? OR email = ? ", request.Username, request.Email).First(&duplicateUserEntity)
+	if dbResults.RowsAffected > 0 {
+		err = exception.NewValidationException("The requested user info is already exists.")
+		return err
+	}
+
+	userEntity := entity.UserEntity{
+		Username: request.Username,
+		Password: utility.CalculateHmacString(request.Password),
+		Email:    request.Email,
+	}
+	dbResults = db.DbConnection.Create(&userEntity)
+	if dbResults.Error != nil {
+		err = exception.NewDatabaseException(dbResults.Error.Error())
+		return err
+	}
+	return c.Status(200).JSON(userEntity)
 }
