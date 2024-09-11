@@ -35,8 +35,7 @@ func (flow UserFlow) CreateUser(c *fiber.Ctx) error {
 	request := new(user.CreateUserRequest)
 	var err error
 	if err = c.BodyParser(request); err != nil {
-		err = exception.NewValidationException("Malformed request body.")
-		return err
+		return exception.NewValidationException("Malformed request body.")
 	}
 	if err = logic.ValidateCreateUserRequest(*request); err != nil {
 		return err
@@ -45,8 +44,7 @@ func (flow UserFlow) CreateUser(c *fiber.Ctx) error {
 	duplicateUserEntity := entity.UserEntity{}
 	dbResults = db.DbConnection.Model(&entity.UserEntity{}).Where("username = ? OR email = ? ", request.Username, request.Email).First(&duplicateUserEntity)
 	if dbResults.RowsAffected > 0 {
-		err = exception.NewValidationException("The requested user info is already exists.")
-		return err
+		return exception.NewValidationException("The requested user info is already exists.")
 	}
 
 	userEntity := entity.UserEntity{
@@ -56,8 +54,38 @@ func (flow UserFlow) CreateUser(c *fiber.Ctx) error {
 	}
 	dbResults = db.DbConnection.Create(&userEntity)
 	if dbResults.Error != nil {
-		err = exception.NewDatabaseException(dbResults.Error.Error())
+		return exception.NewDatabaseException(dbResults.Error.Error())
+	}
+	response := logic.MapCreateUserResponse(userEntity)
+	return c.Status(200).JSON(response)
+}
+
+func (flow UserFlow) LoginUser(c *fiber.Ctx) error {
+	request := new(user.LoginUserRequest)
+	var err error
+	if err = c.BodyParser(request); err != nil {
+		return exception.NewValidationException("Malformed request body.")
+	}
+	if err = logic.ValidateLoginUserRequest(*request); err != nil {
 		return err
 	}
-	return c.Status(200).JSON(userEntity)
+
+	userEntity := entity.UserEntity{}
+	var dbResults *gorm.DB
+	dbResults = db.DbConnection.Model(&entity.UserEntity{}).Where("username = ? or email = ?", request.Username, request.Email).First(&userEntity)
+	if dbResults.Error != nil || dbResults.RowsAffected == 0 {
+		return exception.NewNotFoundException("User not found.")
+	}
+	if request.Password != userEntity.Password {
+		return exception.NewValidationException("Wrong password.")
+	}
+	userLoginHistoryEntity := entity.UserLoginHistoryEntity{
+		UserId: userEntity.Id,
+	}
+	dbResults = db.DbConnection.Create(&userLoginHistoryEntity)
+	if dbResults.Error != nil {
+		return exception.NewDatabaseException(dbResults.Error.Error())
+	}
+	response := logic.MapLoginUserResponse(userLoginHistoryEntity)
+	return c.Status(200).JSON(response)
 }

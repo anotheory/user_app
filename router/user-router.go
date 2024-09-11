@@ -11,4 +11,5 @@ func InitUserRouter(app *fiber.App) {
 
 	router.Get("/:username", flow.UserFlow{}.GetUser)
 	router.Post("/", flow.UserFlow{}.CreateUser)
+	router.Post("/login", flow.UserFlow{}.LoginUser)
 }
